@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Ambiente virtual (uv)
+api/.venv/
+
+# Dados/pacotes gerados por `make data` (reprodutíveis via seed_data.py + package_material.py,
+# RNG determinístico com seed=42 — não precisam ficar versionados)
+/data/
+/agent-input/
+/eval/
+
+# Runtime do Makefile (pids/logs de `make up`)
+.run/
+
+# Segredos do agente
+agent/.env
+
+# Editor/OS
+.DS_Store
+.vscode/
