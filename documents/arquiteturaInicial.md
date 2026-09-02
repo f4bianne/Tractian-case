@@ -55,3 +55,63 @@ Cliente (ticket)
   trace e no handoff para o engenheiro; a resposta ao cliente é em linguagem direta.
 - **O agente não tem acesso ao gabarito** (`eval/`, `docs/test-scenarios.md`, `data/cases.parquet`)
   — a avaliação é aplicada depois da execução, sobre o trace.
+
+``` mermaid
+---
+config:
+  layout: dagre
+  theme: base
+  themeVariables:
+    lineColor: '#FFFFFF'
+    primaryColor: '#FFFFFF'
+    primaryTextColor: '#000000'
+    primaryBorderColor: '#FFFFFF'
+---
+flowchart LR
+    U["Cliente<br>ticket"] --> FE["Interface de demonstração<br>Streamlit ou Gradio"]
+    FE --> AG["Agente de atendimento<br>LangGraph / Pydantic AI + LLM aberto"]
+    AG --> TL["Camada de tools<br>funções Python + schemas Pydantic"] & TR["Trace<br>modelo Pydantic + log JSON"]
+    TL --> IND["API industrial<br>FastAPI · fornecida pela Tractian"]
+    IND --> DEC["Camada de decisão<br>regras Python sobre confiança e conflito"]
+    DEC -- evidência suficiente --> GEN["Geração de resposta<br>LLM + trace como contexto"]
+    DEC -- ação de impacto --> CONF["Confirmação humana<br>aprovação na interface"]
+    DEC -- incerteza / conflito --> HAND["Intelligent Handoff<br>modelo Pydantic estruturado"]
+    CONF --> HAND
+    GEN --> TR
+    HAND --> TR
+    RUN["Execução dos cenários<br>script Python · 17 casos"] --> AG
+    TR --> EVAL["EVAL / AVALIAÇÃO<br><br>
+    Checks programáticos<br>
+    Comparação trace × gabarito<br>
+    LLM Judge<br>
+    Métricas de desempenho"] & DB[("Casos · gabaritos · histórico<br>JSON / SQLite local")]
+    EVAL --> FA["Failure Analysis<br><br>
+    Agrupamento de falhas<br>
+    Padrões de erro<br>
+    Análise de causa"]
+    FA --> SD["Scenario Discovery<br><br>
+    LLM Judge<br>
+    Seed da API<br>
+    Novos cenários e regressões"]
+    SD -. novos cenários / regressões .-> RUN
+    SD -. feedback para melhoria .-> AG
+    DB --> FE
+
+     AG:::ai
+     TL:::deterministic
+     TR:::deterministic
+     IND:::deterministic
+     DEC:::deterministic
+     GEN:::ai
+     CONF:::deterministic
+     HAND:::deterministic
+     RUN:::deterministic
+     EVAL:::evaluation
+     DB:::storage
+     FA:::deterministic
+     SD:::ai
+    classDef deterministic stroke:#2E7D32
+    classDef ai stroke:#EF6C00
+    classDef storage stroke:#1565C0
+    classDef evaluation stroke:#6A1B9A,stroke-width:3px
+```
